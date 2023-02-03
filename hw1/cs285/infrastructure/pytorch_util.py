@@ -2,6 +2,7 @@ from typing import Union
 
 import torch
 from torch import nn
+from torch import Tensor
 
 Activation = Union[str, nn.Module]
 
@@ -15,7 +16,6 @@ _str_to_activation = {
     'softplus': nn.Softplus(),
     'identity': nn.Identity(),
 }
-
 
 def build_mlp(
         input_size: int,
@@ -47,10 +47,23 @@ def build_mlp(
 
     # TODO: return a MLP. This should be an instance of nn.Module
     # Note: nn.Sequential is an instance of nn.Module.
-    raise NotImplementedError
+    
+    class MLP(nn.Module):
+        def __init__(self):
+            super(MLP, self).__init__()
+            input_layer = [nn.Linear(input_size, size)]
+            hidden_layer = [nn.Linear(size, size), activation]
+            output_layer = [nn.Linear(size, output_size), output_activation]
+            layers = input_layer + n_layers * hidden_layer + output_layer
+            self.model = nn.Sequential(*layers)
+        
+        def forward(self, x: Tensor) -> Tensor:
+            return self.model(x)    
+    
+    return MLP()
 
 
-device = None
+device = torch.device('cuda')
 
 
 def init_gpu(use_gpu=True, gpu_id=0):
